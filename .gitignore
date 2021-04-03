@@ -1,0 +1,5 @@
+venv
+azurecloud.westeurope.txt
+meraki_o365_json.txt
+.idea
+__pycache__
