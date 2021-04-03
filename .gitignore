@@ -1,5 +1,6 @@
 venv
 azurecloud.westeurope.txt
 meraki_o365_json.txt
+o365_minemeld.txt
 .idea
 __pycache__
