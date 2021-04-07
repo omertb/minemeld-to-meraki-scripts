@@ -4,26 +4,30 @@ import requests
 import sys
 import time
 import os
+from logger import send_wr_log
 
 
 COMMENT = "office365_minemeld"
+MAIN_DIR = '/nw/meraki/automation-scripts/update_meraki_rules'
 IP_ADDR_LIST_URL ="https://10.62.0.155/feeds/o365-any-any-ipv4-feed?tr=1"
 DOMAIN_LIST_URL = "https://10.62.0.155/feeds/o365-any-any-url-feed"
 requests.packages.urllib3.disable_warnings()
 
 
 def get_o365_minemeld():
-    os.chdir('/nw/meraki/automation-scripts/update_meraki_rules')
+    os.chdir(MAIN_DIR)
     response = requests.request(method="GET", url=IP_ADDR_LIST_URL, verify=False)
 
     if response.status_code != 200 or response.text == "":
         print("invalid response from minemeld")
+        send_wr_log("Invalid response while getting IPv4 feed from minemeld! Code: {}".format(str(response.status_code)))
         sys.exit(-1)
     ip_addrs = response.text
 
     response = requests.request(method="GET", url=DOMAIN_LIST_URL, verify=False)
     if response.status_code != 200 or response.text == "":
         print("invalid response from minemeld")
+        send_wr_log("Invalid response while getting URL feed from minemeld! Code: {}".format(str(response.status_code)))
         sys.exit(-1)
     domains = response.text
 
@@ -37,9 +41,11 @@ def get_o365_minemeld():
         idx = item.find("*")
         if idx == 0:
             if item[1] != ".":
+                send_wr_log("Invalid input for meraki firewall rule, removed: {}".format(item))
                 continue
         idx = item.find("*", 1)
         if idx != -1:
+            send_wr_log("Invalid input for meraki firewall rule, removed: {}".format(item))
             continue
         domain_list.append(item)
 
@@ -48,12 +54,13 @@ def get_o365_minemeld():
     filename = "o365_minemeld.txt"
     with open(filename, "r") as f:
         minemeld_file_content = f.read()
-        minemeld_list = minemeld_file_content.splitlines()
-        minemeld_list = sorted(set(minemeld_list))
-        if minemeld_list == sorted(set(ip_domain_list)):
-            print("ALREADY UP TO DATE!")
-            sys.exit(-1)
-            return None
+
+    minemeld_list = minemeld_file_content.splitlines()
+    minemeld_list = sorted(set(minemeld_list))
+    if minemeld_list == sorted(set(ip_domain_list)):
+        print("ALREADY UP TO DATE!")
+        send_wr_log("File did not change! Exiting without processing.")
+        sys.exit(-1)
 
     with open(filename, "w") as f:
         f.write(ip_domain_str)
@@ -72,17 +79,20 @@ def main():
     ip_list = get_o365_minemeld()
     comment = COMMENT
     filename = "meraki_o365_json.txt"
-    os.chdir('/nw/meraki/automation-scripts/update_meraki_rules')
+    os.chdir(MAIN_DIR)
     if ip_list:
         meraki_o365_json = create_meraki_post_json(ip_list, comment)
         with open(filename, "w") as f:
             f.write(meraki_o365_json)
-        historical_filename = "meraki_o365_json_" + str(int(time.time()))
+        send_wr_log("IP list is updated and json file for meraki is created!")
+        historical_filename = MAIN_DIR + "/json_history/meraki_o365_json_" + str(int(time.time()))
+        os.makedirs(os.path.dirname(historical_filename), exist_ok=True)
         with open(historical_filename, "w") as f:
             f.write(meraki_o365_json)
         print("UPDATED!")
     else:
         print("ERROR!")
+        send_wr_log("Error while getting ip list! IP list is empty.")
         sys.exit(-1)
 
 
