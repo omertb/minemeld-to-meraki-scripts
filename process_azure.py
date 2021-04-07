@@ -40,7 +40,7 @@ def get_azure_minemeld():
     minemeld_list = minemeld_file_content.splitlines()
     minemeld_list = sorted(set(minemeld_list))
     if minemeld_list == sorted(set(ip_list)):
-        send_wr_log("File did not change! Exiting without processing.")
+        send_wr_log("File {} did not change! Exiting without processing.".format(filename))
         sys.exit(-1)
 
     with open(filename, "w") as f:
@@ -66,7 +66,7 @@ def main():
         meraki_azure_json = create_meraki_post_json(ip_list, comment)
         with open(filename, "w") as f:
             f.write(meraki_azure_json)
-        send_wr_log("IP list is updated and json file for meraki is created!")
+        send_wr_log("IP list is updated and json file {} is written!".format(filename))
 
         # save historically
         historical_filename = MAIN_DIR + "/json_history/meraki_azure_json_" + str(int(time.time()))
