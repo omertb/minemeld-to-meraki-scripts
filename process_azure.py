@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
+
 import requests
 import sys
 import time
 import os
+
 
 COMMENT = "azure_westeurope_minemeld"
 AZURE_WEST_URL = "https://10.62.0.155/feeds/D365AzureIPRangeOutput"
@@ -16,7 +18,6 @@ def get_azure_minemeld():
     if response.status_code != 200 or response.text == "":
         print("minemeld\'den gecersiz cevap döndü")
         sys.exit(-1)
-        return None
     ip_addrs = response.text
 
     all_ip_list = ip_addrs.splitlines()
@@ -31,7 +32,6 @@ def get_azure_minemeld():
         if minemeld_list == sorted(set(ip_list)):
             print("GUNCEL!")
             sys.exit(-1)
-            return None
 
     with open(filename, "w") as f:
         f.write(ip_addrs)
@@ -56,7 +56,7 @@ def main():
         meraki_azure_json = create_meraki_post_json(ip_list, comment)
         with open(filename, "w") as f:
             f.write(meraki_azure_json)
-        historical_filename = "o365_azure_json_" + str(int(time.time()))
+        historical_filename = "meraki_azure_json_" + str(int(time.time()))
         with open(historical_filename, "w") as f:
             f.write(meraki_azure_json)
         print("GUNCELLENDI!")

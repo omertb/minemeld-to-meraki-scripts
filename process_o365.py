@@ -1,7 +1,10 @@
+#!/usr/bin/env python3
+
 import requests
 import sys
 import time
 import os
+
 
 COMMENT = "office365_minemeld"
 IP_ADDR_LIST_URL ="https://10.62.0.155/feeds/o365-any-any-ipv4-feed?tr=1"
@@ -10,20 +13,18 @@ requests.packages.urllib3.disable_warnings()
 
 
 def get_o365_minemeld():
-    os.chdir('/nw/meraki/automation-scripts/office365')
+    os.chdir('/nw/meraki/automation-scripts/update_meraki_rules')
     response = requests.request(method="GET", url=IP_ADDR_LIST_URL, verify=False)
 
     if response.status_code != 200 or response.text == "":
         print("invalid response from minemeld")
         sys.exit(-1)
-        return None
     ip_addrs = response.text
 
     response = requests.request(method="GET", url=DOMAIN_LIST_URL, verify=False)
     if response.status_code != 200 or response.text == "":
         print("invalid response from minemeld")
         sys.exit(-1)
-        return None
     domains = response.text
 
     ip_domain_str = ip_addrs + domains
@@ -71,12 +72,12 @@ def main():
     ip_list = get_o365_minemeld()
     comment = COMMENT
     filename = "meraki_o365_json.txt"
-    os.chdir('/nw/meraki/automation-scripts/office365')
+    os.chdir('/nw/meraki/automation-scripts/update_meraki_rules')
     if ip_list:
         meraki_o365_json = create_meraki_post_json(ip_list, comment)
         with open(filename, "w") as f:
             f.write(meraki_o365_json)
-        historical_filename = "o365_minemeld_json_" + str(int(time.time()))
+        historical_filename = "meraki_o365_json_" + str(int(time.time()))
         with open(historical_filename, "w") as f:
             f.write(meraki_o365_json)
         print("UPDATED!")
