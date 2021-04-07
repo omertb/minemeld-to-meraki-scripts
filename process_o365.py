@@ -16,20 +16,26 @@ requests.packages.urllib3.disable_warnings()
 
 def get_o365_minemeld():
     os.chdir(MAIN_DIR)
-    response = requests.request(method="GET", url=IP_ADDR_LIST_URL, verify=False)
+    try:
+        response = requests.request(method="GET", url=IP_ADDR_LIST_URL, verify=False, timeout=15)
+        if response.status_code != 200 or response.text == "":
+            print("invalid response from minemeld")
+            send_wr_log("Invalid response while getting IPv4 feed from minemeld! Code: {}".format(str(response.status_code)))
+            sys.exit(-1)
+        ip_addrs = response.text
 
-    if response.status_code != 200 or response.text == "":
-        print("invalid response from minemeld")
-        send_wr_log("Invalid response while getting IPv4 feed from minemeld! Code: {}".format(str(response.status_code)))
+        response = requests.request(method="GET", url=DOMAIN_LIST_URL, verify=False, timeout=15)
+        if response.status_code != 200 or response.text == "":
+            print("invalid response from minemeld")
+            send_wr_log("Invalid response while getting URL feed from minemeld! Code: {}".format(str(response.status_code)))
+            sys.exit(-1)
+        domains = response.text
+    except requests.exceptions.ConnectionError as e:
+        send_wr_log("Connection Error: {}".format(str(e)))
         sys.exit(-1)
-    ip_addrs = response.text
-
-    response = requests.request(method="GET", url=DOMAIN_LIST_URL, verify=False)
-    if response.status_code != 200 or response.text == "":
-        print("invalid response from minemeld")
-        send_wr_log("Invalid response while getting URL feed from minemeld! Code: {}".format(str(response.status_code)))
+    except Exception as e:
+        send_wr_log("Not handled exception: {}".format(str(e)))
         sys.exit(-1)
-    domains = response.text
 
     ip_domain_str = ip_addrs + domains
 

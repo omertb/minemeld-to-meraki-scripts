@@ -15,7 +15,14 @@ requests.packages.urllib3.disable_warnings()
 
 def get_azure_minemeld():
     os.chdir(MAIN_DIR)
-    response = requests.request(method="GET", url=AZURE_WEST_URL, verify=False)
+    try:
+        response = requests.request(method="GET", url=AZURE_WEST_URL, verify=False, timeout=15)
+    except requests.exceptions.ConnectionError as e:
+        send_wr_log("Connection Error: {}".format(str(e)))
+        sys.exit(-1)
+    except Exception as e:
+        send_wr_log("Not handled exception: {}".format(str(e)))
+        sys.exit(-1)
 
     if response.status_code != 200 or response.text == "":
         send_wr_log("Invalid response while getting IPv4 feed from minemeld! Code: {}".format(str(response.status_code)))
