@@ -69,7 +69,7 @@ def get_o365_minemeld():
         sys.exit(-1)
 
     with open(filename, "w") as f:
-        f.write(ip_domain_str)
+        f.write("\n".join(ip_domain_list))
     ips_domains_with_comma = ",".join(ip_domain_list)
     ips_domains_with_comma = ips_domains_with_comma.rstrip(",")
     return ips_domains_with_comma

@@ -31,7 +31,7 @@ def get_azure_minemeld():
 
     all_ip_list = ip_addrs.splitlines()
     ip_list = [ip for ip in all_ip_list if not ":" in ip]  # removed ipv6 addresses
-    ip_addrs = "\n".join(ip_list)
+
 
     filename = "azure_westeurope_minemeld.txt"
     with open(filename, "r") as f:
@@ -43,6 +43,7 @@ def get_azure_minemeld():
         send_wr_log("File {} did not change! Exiting without processing.".format(filename))
         sys.exit(-1)
 
+    ip_addrs = "\n".join(ip_list)
     with open(filename, "w") as f:
         f.write(ip_addrs)
 
